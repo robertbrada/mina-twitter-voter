@@ -23,10 +23,8 @@ export default function Home() {
       });
   }
 
-  console.log("data", data);
   return (
     <div>
-      <h1>Mina Twitter Voter</h1>
       <input
         type="text"
         value={username}
