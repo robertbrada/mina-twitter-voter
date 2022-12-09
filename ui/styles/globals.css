@@ -24,3 +24,7 @@ a {
     background: black;
   }
 }
+
+.requests-limit {
+  background-color: blue;
+}
