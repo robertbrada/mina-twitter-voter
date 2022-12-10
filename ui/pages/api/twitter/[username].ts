@@ -22,7 +22,7 @@ export type Response = {
     userId: Field;
     targetId: Field;
     userFollowsTarget: Field;
-    userTwitterKey: PublicKey;
+    userTwitterKey: PublicKey | null;
   };
   signature: SignatureType;
   publicKey: PublicKeyType;
@@ -93,8 +93,13 @@ async function getSignedIsFollowing(
     user.id
   );
 
+  console.log("followings", followings);
+  console.log("rateLimit", rateLimit);
+
   // search for target account in users' followings
-  const targetAccount = followings.find((f) => f.id === targetAccountId);
+  const targetAccount = followings.find((f) => f !== undefined ? f.id === targetAccountId : false);
+
+  console.log("targetAccount", targetAccount);
 
   // convert to snarky data types
   const userFollowsTarget = Field(targetAccount ? 1 : 0);
@@ -103,6 +108,31 @@ async function getSignedIsFollowing(
   const userBioMinaAddress = user.description
     ? getMinaAddressFromBio(user.description)
     : "";
+
+  console.log("userBioMinaAddress", userBioMinaAddress);
+
+  if (!userBioMinaAddress) {
+    console.log("NOT userBioMinaAddress");
+    return {
+      data: {
+        userId: userId,
+        targetId,
+        userFollowsTarget,
+        userTwitterKey: null,
+      },
+      signature: Signature.create(privateKey, [
+        userId,
+        targetId,
+        userFollowsTarget,
+        Field(0),
+        Field(0),
+      ]),
+      publicKey: publicKey,
+      error: false,
+      rateLimit,
+    };
+  }
+
   const userTwitterKey = PublicKey.fromBase58(userBioMinaAddress);
   const userTwitterKeyFields = userTwitterKey.toFields(); // returns two fields
 

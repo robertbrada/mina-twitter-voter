@@ -1,0 +1,1 @@
+export {MinaLogo} from './MinaLogo';

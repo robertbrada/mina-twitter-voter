@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { PublicKey, PrivateKey, Field } from "snarkyjs";
+import {
+  Container,
+  Title,
+  Group,
+  Anchor,
+  Box,
+  useMantineTheme,
+} from "@mantine/core";
+import { Logo } from "../components/Logo/Logo";
 import "../styles/globals.css";
 import type { AppProps } from "next/app";
 
@@ -15,6 +24,8 @@ export async function getServerSideProps() {
 }
 
 export default function App({ Component, pageProps }: AppProps) {
+  const theme = useMantineTheme();
+
   let [state, setState] = useState({
     zkappWorkerClient: null as null | ZkappWorkerClient,
     hasWallet: null as null | boolean,
@@ -126,17 +137,17 @@ export default function App({ Component, pageProps }: AppProps) {
 
   let hasWallet;
   if (state.hasWallet != null && !state.hasWallet) {
-    const auroLink = "https://www.aurowallet.com/";
-    const auroLinkElem = (
-      <a href={auroLink} target="_blank" rel="noreferrer">
-        {" "}
-        [Link]{" "}
-      </a>
-    );
     hasWallet = (
       <div>
         {" "}
-        Could not find a wallet. Install Auro wallet here: {auroLinkElem}
+        Could not find a wallet.{" "}
+        <Anchor
+          href="https://www.aurowallet.com/"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Install Auro wallet here
+        </Anchor>
       </div>
     );
   }
@@ -184,13 +195,23 @@ export default function App({ Component, pageProps }: AppProps) {
   }
 
   return (
-    <>
-      <h1>Mina Twitter Voter</h1>
+    <Container size="xl" pt={40}>
+      <Group mb={20}>
+        <Logo size={60} />
+        <Title size="h2">Mina Twitter Voter</Title>
+      </Group>
       {setup}
       {accountDoesNotExist}
       {mainContent}
-      <hr />
-      <Component {...pageProps} />
-    </>
+      <Box
+        sx={(theme) => ({
+          borderTop: `1px solid ${theme.colors.gray[3]}`,
+          paddingTop: 20,
+          marginTop: 16,
+        })}
+      >
+        <Component {...pageProps} />
+      </Box>
+    </Container>
   );
 }
