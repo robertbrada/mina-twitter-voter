@@ -63,11 +63,11 @@ export function TwitterAccountInfo({
   return (
     <Stack>
       <Text weight={500}>
-        Okay, this is what oracle says about your Twitter profile:
+        This is what oracle says about your Twitter profile:
       </Text>
       <Grid
         columns={3}
-        gutter={4}
+        gutter='xs'
         style={{
           color: theme.colors.gray[9],
           fontSize: theme.fontSizes.sm,

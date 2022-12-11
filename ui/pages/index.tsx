@@ -77,8 +77,8 @@ export default function Home() {
         <Text weight={500} mb={10}>
           Hello Stranger,
         </Text>
-        <Text>
-          In thi app you can vote for your favorite Mina logo using
+        <Text size="sm">
+          In this app you can vote for your favorite Mina logo using
           Zero-Knowledge profs. But there is one caveat. Only users following{" "}
           <Anchor
             href="https://twitter.com/MinaProtocol"

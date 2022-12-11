@@ -26,10 +26,17 @@ export function VotingForm({ error = false, ...others }: VotingFormProps) {
   return (
     <Stack pt={10}>
       {!error && (
-        <Text size="sm" color="dimmed" mb={20}>
-          Everything looks great! Vote for your favorite logo. The Voting
-          Contract will check again if the data is coming from a trusted source.
-        </Text>
+        <Stack spacing={8}>
+          <Text size="sm" color="dimmed">
+            Everything looks great!
+          </Text>
+          <Text size="sm" color="dimmed" mb={20}>
+            If you click on <Text span weight={500}>{`"Vote"`}</Text>, the
+            Voting Contract will check again that the data is coming from a
+            trusted oracle and that you are the owner of provided Twitter
+            account.
+          </Text>
+        </Stack>
       )}
       <Grid
         columns={3}
@@ -44,10 +51,10 @@ export function VotingForm({ error = false, ...others }: VotingFormProps) {
       >
         <Grid.Col span={1}>
           <Stack spacing="xs">
-            <MinaLogo size={70} backgroundFill={theme.colors.pink[6]} />
+            <MinaLogo size={60} backgroundFill={theme.colors.pink[6]} />
             <Button
               size="xs"
-              style={{ width: 70 }}
+              style={{ width: 60 }}
               color="pink"
               variant="light"
               disabled={error}
@@ -58,10 +65,10 @@ export function VotingForm({ error = false, ...others }: VotingFormProps) {
         </Grid.Col>
         <Grid.Col span={1}>
           <Stack spacing="xs">
-            <MinaLogo size={70} backgroundFill={theme.colors.violet[6]} />
+            <MinaLogo size={60} backgroundFill={theme.colors.violet[6]} />
             <Button
               size="xs"
-              style={{ width: 70 }}
+              style={{ width: 60 }}
               color="violet"
               variant="light"
               disabled={error}
@@ -72,10 +79,10 @@ export function VotingForm({ error = false, ...others }: VotingFormProps) {
         </Grid.Col>
         <Grid.Col span={1}>
           <Stack spacing="xs">
-            <MinaLogo size={70} backgroundFill={theme.colors.teal[6]} />
+            <MinaLogo size={60} backgroundFill={theme.colors.teal[6]} />
             <Button
               size="xs"
-              style={{ width: 70 }}
+              style={{ width: 60 }}
               color="teal"
               variant="light"
               disabled={error}
