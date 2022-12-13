@@ -14,7 +14,8 @@ import { RateLimit } from "../components/RateLimit/RateLimit";
 import { TwitterAccountInfo } from "../components/TwitterAccountInfo/TwitterAccountInfo";
 import { VotingForm } from "../components/VotingForm/VotingForm";
 import { PublicKey } from "snarkyjs";
-import type { Votes } from "./zkappWorkerClient";
+// import type { Votes } from "./zkappWorkerClient";
+import type { Votes } from "../workers/zkappWorkerClient";
 
 export interface ResponseString {
   data: {
@@ -116,9 +117,9 @@ export default function Home({
           >
             {"Mina's Twitter account"}
           </Anchor>{" "}
-          vote for their favorite Mina logo.{' '}
-          {"We'are using Mina's smart contracts and oracles to do that."}{' '}
-          Follow instructions below so we can verify your account:
+          vote for their favorite Mina logo.{" "}
+          {"We'are using Mina's smart contracts and oracles to do that."} Follow
+          instructions below so we can verify your account:
         </Text>
         <ol style={{ paddingLeft: 20, marginTop: 30, marginBottom: 10 }}>
           <li>

@@ -17,7 +17,7 @@ type Transaction = Awaited<ReturnType<typeof Mina.transaction>>;
 import type { VoteParams } from "./zkappWorkerClient";
 
 // ---------------------------------------------------------------------------------------
-export declare class TwitterVoter extends SmartContract {
+declare class TwitterVoter extends SmartContract {
   oraclePublicKey: State<PublicKey>;
   votesFor0: State<Field>;
   votesFor1: State<Field>;
@@ -58,9 +58,7 @@ const functions = {
   },
   loadContract: async (args: {}) => {
     // const { Add } = await import("../../contracts/build/src/Add.js");
-    // const { TwitterVoter } = await import(
-    //   "../../contracts/build/src/TwitterVoter.js"
-    // );
+    const { TwitterVoter } = await import("./TwitterVoter.js");
     state.TwitterVoter = TwitterVoter;
   },
   compileContract: async (args: {}) => {

@@ -17,9 +17,10 @@ import { IconCheck, IconExternalLink } from "@tabler/icons";
 import { Logo } from "../components/Logo/Logo";
 import "../styles/globals.css";
 import type { AppProps } from "next/app";
-import type { Votes } from "./zkappWorkerClient";
-
-import ZkappWorkerClient from "./zkappWorkerClient";
+// import type { Votes } from "./zkappWorkerClient";
+// import ZkappWorkerClient from "./zkappWorkerClient";
+import ZkappWorkerClient from "../workers/zkappWorkerClient";
+import type { Votes } from "../workers/zkappWorkerClient";
 
 let transactionFee = 0.2;
 
@@ -180,7 +181,10 @@ export default function App({ Component, pageProps }: AppProps) {
           target="_blank"
           rel="noreferrer"
         >
-          <Text span weight={600}>Install Auro wallet here</Text>.
+          <Text span weight={600}>
+            Install Auro wallet here
+          </Text>
+          .
         </Anchor>
       </Alert>
     );
@@ -200,7 +204,6 @@ export default function App({ Component, pageProps }: AppProps) {
       </div>
     );
   }
-
 
   return (
     <Container size="xl" pt={40}>

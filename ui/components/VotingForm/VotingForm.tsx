@@ -12,7 +12,8 @@ import {
 } from "@mantine/core";
 import useStyles from "./VotingForm.styles";
 import { MinaLogo } from "../MinaLogo/MinaLogo";
-import type { Votes } from "../../pages/zkappWorkerClient";
+// import type { Votes } from "../../pages/zkappWorkerClient";
+import type { Votes } from "../../workers/zkappWorkerClient";
 
 interface VotingOptionProps {
   currentVotes: string;
