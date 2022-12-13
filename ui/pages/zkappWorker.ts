@@ -6,14 +6,37 @@ import {
   Field,
   fetchAccount,
   Signature,
+  State,
+  DeployArgs,
+  SmartContract,
 } from "snarkyjs";
 
 type Transaction = Awaited<ReturnType<typeof Mina.transaction>>;
 
-// ---------------------------------------------------------------------------------------
-
-import type { TwitterVoter } from "../../contracts/src/TwitterVoter";
+// import type { TwitterVoter } from "../../contracts/src/TwitterVoter";
 import type { VoteParams } from "./zkappWorkerClient";
+
+// ---------------------------------------------------------------------------------------
+export declare class TwitterVoter extends SmartContract {
+  oraclePublicKey: State<PublicKey>;
+  votesFor0: State<Field>;
+  votesFor1: State<Field>;
+  votesFor2: State<Field>;
+  events: {
+    verified: typeof Field;
+    voted: typeof Field;
+  };
+  deploy(args: DeployArgs): void;
+  verify(
+    userId: Field,
+    targetId: Field,
+    userFollowsTarget: Field,
+    twitterPublicKey: PublicKey,
+    senderPublicKey: PublicKey,
+    signature: Signature,
+    voteOptionId: Field
+  ): void;
+}
 
 const state = {
   TwitterVoter: null as null | typeof TwitterVoter,
@@ -35,9 +58,9 @@ const functions = {
   },
   loadContract: async (args: {}) => {
     // const { Add } = await import("../../contracts/build/src/Add.js");
-    const { TwitterVoter } = await import(
-      "../../contracts/build/src/TwitterVoter.js"
-    );
+    // const { TwitterVoter } = await import(
+    //   "../../contracts/build/src/TwitterVoter.js"
+    // );
     state.TwitterVoter = TwitterVoter;
   },
   compileContract: async (args: {}) => {
