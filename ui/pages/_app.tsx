@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { PublicKey, PrivateKey, Field } from "snarkyjs";
+import { PublicKey, PrivateKey, Field, Signature } from "snarkyjs";
 import {
   Container,
   Title,
@@ -11,10 +11,11 @@ import {
 import { Logo } from "../components/Logo/Logo";
 import "../styles/globals.css";
 import type { AppProps } from "next/app";
+import type { VoteParams, Votes } from "./zkappWorkerClient";
 
 import ZkappWorkerClient from "./zkappWorkerClient";
 
-let transactionFee = 0.1;
+let transactionFee = 0.2;
 
 export async function getServerSideProps() {
   console.log("getServerSideProps APP");
@@ -24,14 +25,12 @@ export async function getServerSideProps() {
 }
 
 export default function App({ Component, pageProps }: AppProps) {
-  const theme = useMantineTheme();
-
   let [state, setState] = useState({
     zkappWorkerClient: null as null | ZkappWorkerClient,
     hasWallet: null as null | boolean,
     hasBeenSetup: false,
     accountExists: false,
-    currentNum: null as null | Field,
+    currentVotes: null as null | Votes,
     publicKey: null as null | PublicKey,
     zkappPublicKey: null as null | PublicKey,
     creatingTransaction: false,
@@ -57,19 +56,20 @@ export default function App({ Component, pageProps }: AppProps) {
         const res = await zkappWorkerClient.fetchAccount({
           publicKey: publicKey!,
         });
+        console.log("publicKeyBase58", publicKeyBase58);
         const accountExists = res.error == null;
         await zkappWorkerClient.loadContract();
         console.log("compiling zkApp");
         await zkappWorkerClient.compileContract();
         console.log("zkApp compiled");
         const zkappPublicKey = PublicKey.fromBase58(
-          "B62qrDe16LotjQhPRMwG12xZ8Yf5ES8ehNzZ25toJV28tE9FmeGq23A"
+          "B62qk1ZDZT37Lf292rnrRvn6przMaZ37tzeMrQy2519Bmn9bLVMdcwy"
         );
         await zkappWorkerClient.initZkappInstance(zkappPublicKey);
         console.log("getting zkApp state...");
         await zkappWorkerClient.fetchAccount({ publicKey: zkappPublicKey });
-        const currentNum = await zkappWorkerClient.getNum();
-        console.log("current state:", currentNum.toString());
+        const currentVotes = await zkappWorkerClient.getVotes();
+        console.log("current votes:", currentVotes.toString());
         setState({
           ...state,
           zkappWorkerClient,
@@ -78,7 +78,7 @@ export default function App({ Component, pageProps }: AppProps) {
           publicKey,
           zkappPublicKey,
           accountExists,
-          currentNum,
+          currentVotes,
         });
       }
     })();
@@ -86,15 +86,37 @@ export default function App({ Component, pageProps }: AppProps) {
   // -------------------------------------------------------
   // Send a transaction
 
-  const onSendTransaction = async () => {
+  const onVote = async (
+    userId: string,
+    targetId: string,
+    userFollowsTarget: string,
+    twitterPublicKey: string,
+    signature: {
+      r: string;
+      s: string;
+    },
+    voteOptionId: number
+  ) => {
+    console.log("_app.tsx onVote()");
     setState({ ...state, creatingTransaction: true });
     console.log("sending a transaction...");
 
+    if (!state.publicKey) return;
     await state.zkappWorkerClient!.fetchAccount({
       publicKey: state.publicKey!,
     });
 
-    await state.zkappWorkerClient!.createUpdateTransaction();
+    console.log("Sender's public key OK");
+
+    await state.zkappWorkerClient!.createVoteTransaction({
+      userId,
+      targetId,
+      userFollowsTarget,
+      twitterPublicKey,
+      senderPublicKey: state.publicKey.toBase58(),
+      signature,
+      voteOptionId,
+    });
 
     console.log("creating proof...");
     await state.zkappWorkerClient!.proveUpdateTransaction();
@@ -121,15 +143,14 @@ export default function App({ Component, pageProps }: AppProps) {
   // -------------------------------------------------------
   // Refresh the current state
 
-  const onRefreshCurrentNum = async () => {
+  const onRefreshCurrentVotes = async () => {
     console.log("getting zkApp state...");
     await state.zkappWorkerClient!.fetchAccount({
       publicKey: state.zkappPublicKey!,
     });
-    const currentNum = await state.zkappWorkerClient!.getNum();
-    console.log("current state:", currentNum.toString());
+    const currentVotes = await state.zkappWorkerClient!.getVotes();
 
-    setState({ ...state, currentNum });
+    setState({ ...state, currentVotes });
   };
 
   // -------------------------------------------------------
@@ -177,22 +198,15 @@ export default function App({ Component, pageProps }: AppProps) {
     );
   }
 
-  let mainContent;
-  if (state.hasBeenSetup && state.accountExists) {
-    mainContent = (
-      <div>
-        <button
-          onClick={onSendTransaction}
-          disabled={state.creatingTransaction}
-        >
-          {" "}
-          Send Transaction{" "}
-        </button>
-        <div> Current Number in zkApp: {state.currentNum!.toString()} </div>
-        <button onClick={onRefreshCurrentNum}> Get Latest State </button>
-      </div>
-    );
-  }
+  // let mainContent;
+  // if (state.hasBeenSetup && state.accountExists) {
+  //   mainContent = (
+  //     <div>
+  //       <div> Current Number in zkApp: {state.currentNum!.toString()} </div>
+  //       <button onClick={onRefreshCurrentVotes}> Get Latest State </button>
+  //     </div>
+  //   );
+  // }
 
   return (
     <Container size="xl" pt={40}>
@@ -202,7 +216,7 @@ export default function App({ Component, pageProps }: AppProps) {
       </Group>
       {setup}
       {accountDoesNotExist}
-      {mainContent}
+      {/* {mainContent} */}
       <Box
         sx={(theme) => ({
           borderTop: `1px solid ${theme.colors.gray[3]}`,
@@ -210,7 +224,14 @@ export default function App({ Component, pageProps }: AppProps) {
           marginTop: 16,
         })}
       >
-        <Component {...pageProps} />
+        <Component
+          {...pageProps}
+          senderPublicKey={state.publicKey}
+          loadingSnarky={!state.hasBeenSetup}
+          creatingTransaction={state.creatingTransaction}
+          onVote={onVote}
+          votes={state.currentVotes}
+        />
       </Box>
     </Container>
   );

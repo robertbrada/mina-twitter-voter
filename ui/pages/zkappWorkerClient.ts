@@ -1,4 +1,10 @@
-import { fetchAccount, PublicKey, PrivateKey, Field } from "snarkyjs";
+import {
+  fetchAccount,
+  PublicKey,
+  PrivateKey,
+  Field,
+  Signature,
+} from "snarkyjs";
 
 import type {
   ZkappWorkerRequest,
@@ -6,6 +12,23 @@ import type {
   WorkerFunctions,
 } from "./zkappWorker";
 
+export interface Votes {
+  votesFor0: string;
+  votesFor1: string;
+  votesFor2: string;
+}
+export interface VoteParams {
+  userId: string;
+  targetId: string;
+  userFollowsTarget: string;
+  twitterPublicKey: string;
+  senderPublicKey: string;
+  signature: {
+    r: string;
+    s: string;
+  };
+  voteOptionId: number;
+}
 export default class ZkappWorkerClient {
   // ---------------------------------------------------------------------------------------
 
@@ -42,13 +65,14 @@ export default class ZkappWorkerClient {
     });
   }
 
-  async getNum(): Promise<Field> {
-    const result = await this._call("getNum", {});
-    return Field.fromJSON(JSON.parse(result as string));
+  async getVotes(): Promise<Votes> {
+    const result = await this._call("getVotes", {});
+    return JSON.parse(result as string);
   }
 
-  createUpdateTransaction() {
-    return this._call("createUpdateTransaction", {});
+  createVoteTransaction(args: VoteParams) {
+    console.log("zkappWorkerClient createVoteTransaction()");
+    return this._call("createVoteTransaction", args);
   }
 
   proveUpdateTransaction() {

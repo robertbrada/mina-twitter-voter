@@ -85,7 +85,7 @@ async function getSignedIsFollowing(
   const { data: user } = await readOnlyClient.v2.userByUsername(username, {
     "user.fields": ["description"],
   });
-  console.log("user", user);
+  // console.log("user", user);
 
   // get who is user following
   const { followings, rateLimit } = await getAllFollowings(
@@ -93,8 +93,8 @@ async function getSignedIsFollowing(
     user.id
   );
 
-  console.log("followings", followings);
-  console.log("rateLimit", rateLimit);
+  // console.log("followings", followings);
+  // console.log("rateLimit", rateLimit);
 
   // search for target account in users' followings
   const targetAccount = followings.find((f) => f !== undefined ? f.id === targetAccountId : false);
@@ -165,7 +165,7 @@ export default async function handler(
 ) {
   // get username from url
   const { username } = req.query;
-  console.log("username", username);
+  // console.log("username", username);
 
   if (typeof username === "string" && username.length > 0) {
     const response = await getSignedIsFollowing(username, MINA_TWITTER_ID);

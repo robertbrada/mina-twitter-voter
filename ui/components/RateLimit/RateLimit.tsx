@@ -31,10 +31,11 @@ export function RateLimit({
       gutter={0}
       style={{
         color: theme.colors.gray[6],
-        fontSize: theme.fontSizes.sm,
-        borderTop: `1px solid ${theme.colors.gray[3]}`,
-        paddingTop: 14,
+        fontSize: theme.fontSizes.xs,
+        // borderTop: `1px solid ${theme.colors.gray[3]}`,
+        // paddingTop: 14,
         paddingLeft: 20,
+        fontWeight: 300,
       }}
     >
       <Grid.Col span={1}>

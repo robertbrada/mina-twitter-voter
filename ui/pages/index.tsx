@@ -12,11 +12,14 @@ import {
   Anchor,
   Box,
   Alert,
+  Center,
 } from "@mantine/core";
 import { RateLimit } from "../components/RateLimit/RateLimit";
 import { TwitterAccountInfo } from "../components/TwitterAccountInfo/TwitterAccountInfo";
 import { VotingForm } from "../components/VotingForm/VotingForm";
 import type { Response } from "./api/twitter/[username]";
+import { PublicKey, PrivateKey, Field, Signature } from "snarkyjs";
+import type { VoteParams, Votes } from "./zkappWorkerClient";
 
 export interface ResponseString {
   data: {
@@ -40,7 +43,20 @@ function formatUsername(username: string) {
   return username;
 }
 
-export default function Home() {
+interface PageProps {
+  senderPublicKey: PublicKey;
+  loadingSnarky: boolean;
+  creatingTransaction: boolean;
+  votes: Votes;
+  onVote: any;
+}
+
+export default function Home({
+  loadingSnarky,
+  onVote,
+  creatingTransaction,
+  votes,
+}: PageProps) {
   const theme = useMantineTheme();
 
   const [username, setUsername] = useState("");
@@ -60,10 +76,9 @@ export default function Home() {
       fetch(`/api/twitter/${formatUsername(username)}`)
         .then((res) => res.json())
         .then((data) => {
-          console.log("data", data);
           setData(data);
           setLoading(false);
-          console.log("data, data");
+          console.log("data", data);
         });
     } catch (e) {
       console.log("Error getting data", e);
@@ -71,8 +86,22 @@ export default function Home() {
     }
   }
 
+  async function handleOnVote(voteId: number) {
+    console.log("index.tsx handleOnVote(), voteId: ", voteId);
+    if (!data || !data.data.userTwitterKey) return;
+
+    onVote(
+      data.data.userId,
+      data.data.targetId,
+      data.data.userFollowsTarget,
+      data.data.userTwitterKey,
+      data.signature,
+      voteId
+    );
+  }
+
   return (
-    <Grid columns={2} gutter={40}>
+    <Grid columns={2} gutter={80}>
       <Grid.Col span={1}>
         <Text weight={500} mb={10}>
           Hello Stranger,
@@ -92,7 +121,7 @@ export default function Home() {
         </Text>
         <ol style={{ paddingLeft: 20, marginTop: 30 }}>
           <li>
-            <Text weight={500}>
+            <Text weight={500} size="sm">
               Type your Mina address in your Twitter bio in the following
               format:
             </Text>
@@ -113,7 +142,9 @@ export default function Home() {
           </li>
           <li>
             <Stack mt={30} spacing="xs">
-              <Text weight={500}>Input your Twitter handle and check</Text>
+              <Text weight={500} size="sm">
+                Input your Twitter handle and check
+              </Text>
               <Group mb={20}>
                 <TextInput
                   type="text"
@@ -132,6 +163,7 @@ export default function Home() {
                   variant="gradient"
                   gradient={{ from: "grape", to: "blue" }}
                   loading={loading}
+                  disabled={!username.trim()}
                 >
                   Check my profile
                 </Button>
@@ -147,13 +179,33 @@ export default function Home() {
         />
       </Grid.Col>
       <Grid.Col span={1}>
-        <TwitterAccountInfo data={data} error={error} />
-        <Text weight={500} mt={40}>
-          Voting Form
-        </Text>
-        <VotingForm
-          error={!data?.data.userFollowsTarget || !data.data.userTwitterKey}
-        />
+        {data ? (
+          <>
+            <TwitterAccountInfo data={data} error={error} />
+            <Text weight={500} mt={40}>
+              Voting Form
+            </Text>
+            <VotingForm
+              error={!data?.data.userFollowsTarget || !data.data.userTwitterKey}
+              loadingSnarky={loadingSnarky}
+              creatingTransaction={creatingTransaction}
+              onVote={(voteId: number) => handleOnVote(voteId)}
+              votes={votes}
+            />
+          </>
+        ) : (
+          <Center
+            style={{
+              backgroundColor: theme.colors.gray[0],
+              height: "100%",
+              borderRadius: theme.radius.sm,
+            }}
+          >
+            <Text color="dimmed" size="sm">
+              Finish your Twitter setup first
+            </Text>
+          </Center>
+        )}
       </Grid.Col>
     </Grid>
   );

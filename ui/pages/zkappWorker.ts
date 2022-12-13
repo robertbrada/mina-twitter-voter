@@ -5,17 +5,19 @@ import {
   PrivateKey,
   Field,
   fetchAccount,
+  Signature,
 } from "snarkyjs";
 
 type Transaction = Awaited<ReturnType<typeof Mina.transaction>>;
 
 // ---------------------------------------------------------------------------------------
 
-import type { Add } from "../../contracts/src/Add";
+import type { TwitterVoter } from "../../contracts/src/TwitterVoter";
+import type { VoteParams } from "./zkappWorkerClient";
 
 const state = {
-  Add: null as null | typeof Add,
-  zkapp: null as null | Add,
+  TwitterVoter: null as null | typeof TwitterVoter,
+  zkapp: null as null | TwitterVoter,
   transaction: null as null | Transaction,
 };
 
@@ -32,11 +34,14 @@ const functions = {
     Mina.setActiveInstance(Berkeley);
   },
   loadContract: async (args: {}) => {
-    const { Add } = await import("../../contracts/build/src/Add.js");
-    state.Add = Add;
+    // const { Add } = await import("../../contracts/build/src/Add.js");
+    const { TwitterVoter } = await import(
+      "../../contracts/build/src/TwitterVoter.js"
+    );
+    state.TwitterVoter = TwitterVoter;
   },
   compileContract: async (args: {}) => {
-    await state.Add!.compile();
+    await state.TwitterVoter!.compile();
   },
   fetchAccount: async (args: { publicKey58: string }) => {
     const publicKey = PublicKey.fromBase58(args.publicKey58);
@@ -44,15 +49,35 @@ const functions = {
   },
   initZkappInstance: async (args: { publicKey58: string }) => {
     const publicKey = PublicKey.fromBase58(args.publicKey58);
-    state.zkapp = new state.Add!(publicKey);
+    state.zkapp = new state.TwitterVoter!(publicKey);
   },
-  getNum: async (args: {}) => {
-    const currentNum = await state.zkapp!.num.get();
-    return JSON.stringify(currentNum.toJSON());
+
+  getVotes: async (args: {}) => {
+    const votesFor0 = await state.zkapp!.votesFor0.get();
+    const votesFor1 = await state.zkapp!.votesFor1.get();
+    const votesFor2 = await state.zkapp!.votesFor2.get();
+
+    return JSON.stringify({
+      votesFor0: votesFor0.toJSON(),
+      votesFor1: votesFor1.toJSON(),
+      votesFor2: votesFor2.toJSON(),
+    });
   },
-  createUpdateTransaction: async (args: {}) => {
+  createVoteTransaction: async (args: VoteParams) => {
+    console.log("zkappWorker createVoteTransaction()");
+    console.log("args", args);
+
+    // Make the conversion to SnarkyJS types here otherwise weird error might occur (e.g. "PublicKey.toFields() is not a function")
     const transaction = await Mina.transaction(() => {
-      state.zkapp!.update();
+      state.zkapp!.verify(
+        Field(args.userId),
+        Field(args.targetId),
+        Field(args.userFollowsTarget),
+        PublicKey.fromBase58(args.twitterPublicKey),
+        PublicKey.fromBase58(args.senderPublicKey),
+        Signature.fromJSON(args.signature),
+        Field(args.voteOptionId)
+      );
     });
     state.transaction = transaction;
   },
