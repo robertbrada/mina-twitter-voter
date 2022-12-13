@@ -108,9 +108,7 @@ export default function Home({
           Hello, Voter!
         </Text>
         <Text size="sm">
-          {
-            "Using this app you can vote for your favorite Mina logo. We'are using Mina's smart contracts and oracles to do that. But only users following "
-          }
+          {"This app lets users who follow"}{" "}
           <Anchor
             href="https://twitter.com/MinaProtocol"
             rel="noreferrer"
@@ -118,7 +116,9 @@ export default function Home({
           >
             {"Mina's Twitter account"}
           </Anchor>{" "}
-          can vote. Follow these instructions so we can verify your account:
+          vote for their favorite Mina logo.{' '}
+          {"We'are using Mina's smart contracts and oracles to do that."}{' '}
+          Follow instructions below so we can verify your account:
         </Text>
         <ol style={{ paddingLeft: 20, marginTop: 30, marginBottom: 10 }}>
           <li>
