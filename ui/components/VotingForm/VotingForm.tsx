@@ -1,22 +1,18 @@
+import { useState } from "react";
 import {
-  Select,
   Text,
   Stack,
-  Group,
   Grid,
   useMantineTheme,
-  Title,
-  ThemeIcon,
   Alert,
   Button,
-  Box,
+  Checkbox,
+  UnstyledButton,
+  Loader,
 } from "@mantine/core";
-import { IconCheck, IconLetterX } from "@tabler/icons";
 import useStyles from "./VotingForm.styles";
 import { MinaLogo } from "../MinaLogo/MinaLogo";
-import type { Response } from "../../pages/api/twitter/[username]";
-import type { ResponseString } from "../../pages/index";
-import type { VoteParams, Votes } from "../../pages/zkappWorkerClient";
+import type { Votes } from "../../pages/zkappWorkerClient";
 
 interface VotingOptionProps {
   currentVotes: string;
@@ -39,7 +35,7 @@ function VotingOption({
 }: VotingOptionProps) {
   return (
     <Stack spacing="xs" align="center">
-      <Box>{currentVotes || "..."}</Box>
+      <Text>{currentVotes || "..."}</Text>
       <MinaLogo size={60} backgroundFill={logoColor} />
       <Button
         size="xs"
@@ -60,34 +56,78 @@ interface VotingFormProps {
   loadingSnarky: boolean;
   creatingTransaction: boolean;
   votes: Votes | null;
+  refreshingState: boolean;
   onVote: (vodeId: number) => void;
+  onRefreshCurrentVotes: () => void;
 }
 export function VotingForm({
   error = false,
   loadingSnarky,
   creatingTransaction,
   votes,
+  refreshingState,
   onVote,
+  onRefreshCurrentVotes,
   ...others
 }: VotingFormProps) {
   const { classes } = useStyles();
   const theme = useMantineTheme();
+  const [ignoreError, setIgnoreError] = useState(false);
 
   return (
     <Stack pt={10}>
       {!error && (
         <Stack spacing={8}>
-          <Text size="sm" color="dimmed">
-            Everything looks great!
-          </Text>
-          <Text size="sm" color="dimmed" mb={20}>
-            If you click on <Text span weight={500}>{`"Vote"`}</Text>, the
-            Voting Contract will check again that your Twitter data is coming
-            from a trusted oracle and that you are the owner of provided Twitter
-            account.
+          <Text span size="sm" color="dimmed" mb={10}>
+            Looks great! Clicking on <Text span weight={500}>{`"Vote"`}</Text>{" "}
+            calls the Voting Contract. It will check that information about your
+            Twitter account comes from a trusted oracle and that you are the
+            owner of the public key shared in your bio.
           </Text>
         </Stack>
       )}
+      {error && !loadingSnarky && (
+        <Stack spacing={8}>
+          <Text span size="sm" color="dimmed" mb={20}>
+            {
+              "Some of the required conditions is not met. Check again that you follow Mina on Twitter and that your Mina address is in your Bio."
+            }
+            <Checkbox
+              size="xs"
+              mt={20}
+              label={
+                <Text color="dimmed">
+                  Ignore UI warnings and try to send transaction anyways
+                </Text>
+              }
+              checked={ignoreError}
+              onChange={(event) => setIgnoreError(event.currentTarget.checked)}
+            />
+          </Text>
+        </Stack>
+
+        // <Alert color="pink">
+        //   <Text color="pink" align="center">
+        //     {
+        //       "You can't vote. Some of the required conditions is not met. Check again the requirements."
+        //     }
+        //   </Text>
+        // </Alert>
+      )}
+      <Text align="center" size={13} color="dimmed" weight={400} mb={10}>
+        Current Votes{" "}
+        <UnstyledButton
+          color="gray"
+          onClick={onRefreshCurrentVotes}
+          disabled={refreshingState}
+        >
+          <Text color="indigo" size="xs">
+            ({refreshingState ? <Loader size={10} color="indigo" /> : "Refresh"}
+            )
+          </Text>
+        </UnstyledButton>
+        :
+      </Text>
       <Grid
         columns={3}
         gutter={4}
@@ -104,7 +144,7 @@ export function VotingForm({
             logoColor={theme.colors.pink[6]}
             buttonColor="pink"
             currentVotes={votes?.votesFor0 ?? ""}
-            disabled={error || loadingSnarky}
+            disabled={(error || loadingSnarky) && !ignoreError}
             loading={creatingTransaction}
             voteId={0}
             onVote={onVote}
@@ -115,7 +155,7 @@ export function VotingForm({
             logoColor={theme.colors.violet[6]}
             buttonColor="violet"
             currentVotes={votes?.votesFor1 ?? ""}
-            disabled={error || loadingSnarky}
+            disabled={(error || loadingSnarky) && !ignoreError}
             loading={creatingTransaction}
             voteId={1}
             onVote={onVote}
@@ -126,22 +166,13 @@ export function VotingForm({
             logoColor={theme.colors.teal[6]}
             buttonColor="teal"
             currentVotes={votes?.votesFor2 ?? ""}
-            disabled={error || loadingSnarky}
+            disabled={(error || loadingSnarky) && !ignoreError}
             loading={creatingTransaction}
             voteId={1}
             onVote={onVote}
           />
         </Grid.Col>
       </Grid>
-      {error && !loadingSnarky && (
-        <Alert color="pink">
-          <Text color="pink" align="center">
-            {
-              "You can't vote. Some of the required conditions is not met. Check again the requirements."
-            }
-          </Text>
-        </Alert>
-      )}
       {loadingSnarky && (
         <Alert color="indigo">
           <Text color="indigo" align="center">

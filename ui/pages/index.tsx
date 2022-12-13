@@ -3,23 +3,18 @@ import {
   TextInput,
   Button,
   Group,
-  Title,
   Text,
   useMantineTheme,
-  Space,
   Stack,
   Grid,
   Anchor,
-  Box,
-  Alert,
   Center,
 } from "@mantine/core";
 import { RateLimit } from "../components/RateLimit/RateLimit";
 import { TwitterAccountInfo } from "../components/TwitterAccountInfo/TwitterAccountInfo";
 import { VotingForm } from "../components/VotingForm/VotingForm";
-import type { Response } from "./api/twitter/[username]";
-import { PublicKey, PrivateKey, Field, Signature } from "snarkyjs";
-import type { VoteParams, Votes } from "./zkappWorkerClient";
+import { PublicKey } from "snarkyjs";
+import type { Votes } from "./zkappWorkerClient";
 
 export interface ResponseString {
   data: {
@@ -47,8 +42,10 @@ interface PageProps {
   senderPublicKey: PublicKey;
   loadingSnarky: boolean;
   creatingTransaction: boolean;
+  refreshingState: boolean;
   votes: Votes;
   onVote: any;
+  onRefreshCurrentVotes: () => void;
 }
 
 export default function Home({
@@ -56,6 +53,8 @@ export default function Home({
   onVote,
   creatingTransaction,
   votes,
+  refreshingState,
+  onRefreshCurrentVotes,
 }: PageProps) {
   const theme = useMantineTheme();
 
@@ -100,26 +99,28 @@ export default function Home({
     );
   }
 
+  const cannotVote = !data?.data.userFollowsTarget || !data.data.userTwitterKey;
+
   return (
-    <Grid columns={2} gutter={80}>
+    <Grid columns={2} gutter={100}>
       <Grid.Col span={1}>
         <Text weight={500} mb={10}>
-          Hello Stranger,
+          Hello, Voter!
         </Text>
         <Text size="sm">
-          In this app you can vote for your favorite Mina logo using
-          Zero-Knowledge profs. But there is one caveat. Only users following{" "}
+          {
+            "Using this app you can vote for your favorite Mina logo. We'are using Mina's smart contracts and oracles to do that. But only users following "
+          }
           <Anchor
             href="https://twitter.com/MinaProtocol"
             rel="noreferrer"
             target="_blank"
           >
-            Mina
+            {"Mina's Twitter account"}
           </Anchor>{" "}
-          on Twitter can do that. I need a favor from you in order to verify
-          your profile:
+          can vote. Follow these instructions so we can verify your account:
         </Text>
-        <ol style={{ paddingLeft: 20, marginTop: 30 }}>
+        <ol style={{ paddingLeft: 20, marginTop: 30, marginBottom: 10 }}>
           <li>
             <Text weight={500} size="sm">
               Type your Mina address in your Twitter bio in the following
@@ -129,10 +130,10 @@ export default function Home({
               mt={10}
               size="sm"
               style={{
-                padding: "10px 16px",
+                padding: "8px 10px",
                 borderRadius: theme.radius.sm,
-                backgroundColor: theme.colors.gray[1],
-                color: theme.colors.gray[7],
+                backgroundColor: theme.colors.gray[8],
+                color: theme.colors.gray[0],
                 wordBreak: "break-all",
                 width: "fit-content",
               }}
@@ -143,7 +144,7 @@ export default function Home({
           <li>
             <Stack mt={30} spacing="xs">
               <Text weight={500} size="sm">
-                Input your Twitter handle and check
+                Type your Twitter handle
               </Text>
               <Group mb={20}>
                 <TextInput
@@ -161,12 +162,15 @@ export default function Home({
                 <Button
                   onClick={() => getTwitterData(username)}
                   variant="gradient"
-                  gradient={{ from: "grape", to: "blue" }}
+                  gradient={{ from: "violet", to: "blue" }}
                   loading={loading}
-                  disabled={!username.trim()}
+                  disabled={!username.trim() || loadingSnarky}
                 >
                   Check my profile
                 </Button>
+                <Text size="xs" color="dimmed">
+                  {loadingSnarky && "Wait for SnarkyJS..."}
+                </Text>
               </Group>
             </Stack>
           </li>
@@ -178,19 +182,21 @@ export default function Home({
           resetTimestamp={data ? data.rateLimit.reset * 1000 : undefined}
         />
       </Grid.Col>
-      <Grid.Col span={1}>
+      <Grid.Col span={1} style={{ marginTop: 34 }}>
         {data ? (
           <>
             <TwitterAccountInfo data={data} error={error} />
             <Text weight={500} mt={40}>
-              Voting Form
+              {cannotVote ? "You can't vote :(" : "Vote Here!"}
             </Text>
             <VotingForm
-              error={!data?.data.userFollowsTarget || !data.data.userTwitterKey}
+              error={cannotVote}
               loadingSnarky={loadingSnarky}
               creatingTransaction={creatingTransaction}
-              onVote={(voteId: number) => handleOnVote(voteId)}
               votes={votes}
+              refreshingState={refreshingState}
+              onVote={(voteId: number) => handleOnVote(voteId)}
+              onRefreshCurrentVotes={onRefreshCurrentVotes}
             />
           </>
         ) : (
@@ -202,7 +208,7 @@ export default function Home({
             }}
           >
             <Text color="dimmed" size="sm">
-              Finish your Twitter setup first
+              Finish Twitter setup first
             </Text>
           </Center>
         )}

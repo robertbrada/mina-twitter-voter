@@ -1,17 +1,23 @@
 import React, { useEffect, useState } from "react";
-import { PublicKey, PrivateKey, Field, Signature } from "snarkyjs";
+import { PublicKey } from "snarkyjs";
 import {
   Container,
   Title,
   Group,
   Anchor,
   Box,
-  useMantineTheme,
+  Text,
+  Loader,
+  ThemeIcon,
+  Modal,
+  Button,
+  Alert,
 } from "@mantine/core";
+import { IconCheck, IconExternalLink } from "@tabler/icons";
 import { Logo } from "../components/Logo/Logo";
 import "../styles/globals.css";
 import type { AppProps } from "next/app";
-import type { VoteParams, Votes } from "./zkappWorkerClient";
+import type { Votes } from "./zkappWorkerClient";
 
 import ZkappWorkerClient from "./zkappWorkerClient";
 
@@ -34,7 +40,10 @@ export default function App({ Component, pageProps }: AppProps) {
     publicKey: null as null | PublicKey,
     zkappPublicKey: null as null | PublicKey,
     creatingTransaction: false,
+    refreshingState: false,
+    txHash: "",
   });
+  const [txModalOpened, setTxModalOpened] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -98,7 +107,7 @@ export default function App({ Component, pageProps }: AppProps) {
     voteOptionId: number
   ) => {
     console.log("_app.tsx onVote()");
-    setState({ ...state, creatingTransaction: true });
+    setState({ ...state, creatingTransaction: true, txHash: "" });
     console.log("sending a transaction...");
 
     if (!state.publicKey) return;
@@ -137,7 +146,8 @@ export default function App({ Component, pageProps }: AppProps) {
       "See transaction at https://berkeley.minaexplorer.com/transaction/" + hash
     );
 
-    setState({ ...state, creatingTransaction: false });
+    setState({ ...state, creatingTransaction: false, txHash: hash });
+    setTxModalOpened(true);
   };
 
   // -------------------------------------------------------
@@ -145,12 +155,13 @@ export default function App({ Component, pageProps }: AppProps) {
 
   const onRefreshCurrentVotes = async () => {
     console.log("getting zkApp state...");
+    setState({ ...state, refreshingState: true });
     await state.zkappWorkerClient!.fetchAccount({
       publicKey: state.zkappPublicKey!,
     });
     const currentVotes = await state.zkappWorkerClient!.getVotes();
 
-    setState({ ...state, currentVotes });
+    setState({ ...state, currentVotes, refreshingState: false });
   };
 
   // -------------------------------------------------------
@@ -159,29 +170,21 @@ export default function App({ Component, pageProps }: AppProps) {
   let hasWallet;
   if (state.hasWallet != null && !state.hasWallet) {
     hasWallet = (
-      <div>
-        {" "}
-        Could not find a wallet.{" "}
+      <Alert color="indigo" mb={30}>
+        <Text span color="indigo" weight={300}>
+          Could not find a wallet.
+        </Text>{" "}
         <Anchor
+          color="indigo"
           href="https://www.aurowallet.com/"
           target="_blank"
           rel="noreferrer"
         >
-          Install Auro wallet here
+          <Text span weight={600}>Install Auro wallet here</Text>.
         </Anchor>
-      </div>
+      </Alert>
     );
   }
-
-  let setupText = state.hasBeenSetup
-    ? "SnarkyJS Ready"
-    : "Setting up SnarkyJS...";
-  let setup = (
-    <div>
-      {" "}
-      {setupText} {hasWallet}
-    </div>
-  );
 
   let accountDoesNotExist;
   if (state.hasBeenSetup && !state.accountExists) {
@@ -198,41 +201,67 @@ export default function App({ Component, pageProps }: AppProps) {
     );
   }
 
-  // let mainContent;
-  // if (state.hasBeenSetup && state.accountExists) {
-  //   mainContent = (
-  //     <div>
-  //       <div> Current Number in zkApp: {state.currentNum!.toString()} </div>
-  //       <button onClick={onRefreshCurrentVotes}> Get Latest State </button>
-  //     </div>
-  //   );
-  // }
 
   return (
     <Container size="xl" pt={40}>
-      <Group mb={20}>
-        <Logo size={60} />
-        <Title size="h2">Mina Twitter Voter</Title>
+      <Group mb={40} position="apart">
+        <Logo size={180} />
+        <>
+          {state.hasBeenSetup ? (
+            <Group spacing={6}>
+              <ThemeIcon color="teal" radius="xl" size="xs">
+                <IconCheck strokeWidth={2.5} />
+              </ThemeIcon>
+              <Text span size="sm" color="dimmed">
+                SnarkyJS Ready!
+              </Text>
+            </Group>
+          ) : (
+            <Group spacing={6}>
+              <Loader color="gray" size="xs" />
+              <Text span size="sm" color="dimmed">
+                Loading SnarkyJS
+              </Text>
+            </Group>
+          )}
+        </>
       </Group>
-      {setup}
-      {accountDoesNotExist}
-      {/* {mainContent} */}
-      <Box
-        sx={(theme) => ({
-          borderTop: `1px solid ${theme.colors.gray[3]}`,
-          paddingTop: 20,
-          marginTop: 16,
-        })}
-      >
+      {hasWallet}
+      <Box>
         <Component
           {...pageProps}
           senderPublicKey={state.publicKey}
           loadingSnarky={!state.hasBeenSetup}
           creatingTransaction={state.creatingTransaction}
-          onVote={onVote}
           votes={state.currentVotes}
+          refreshingState={state.refreshingState}
+          onVote={onVote}
+          onRefreshCurrentVotes={onRefreshCurrentVotes}
         />
       </Box>
+      <Modal
+        size="sm"
+        opened={txModalOpened}
+        onClose={() => setTxModalOpened(false)}
+        title={
+          <Title order={2} size="h4">
+            Transaction is on the way!
+          </Title>
+        }
+      >
+        <Button
+          component="a"
+          href={"https://berkeley.minaexplorer.com/transaction/" + state.txHash}
+          target="_blank"
+          rel="noreferrer"
+          color="indigo"
+        >
+          <Group spacing={6}>
+            <Text span>View at Mina Explorer</Text>
+            <IconExternalLink size={18} />
+          </Group>
+        </Button>
+      </Modal>
     </Container>
   );
 }

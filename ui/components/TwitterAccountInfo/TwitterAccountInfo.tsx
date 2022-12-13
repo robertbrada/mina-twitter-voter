@@ -1,40 +1,16 @@
 import {
-  Select,
   Text,
   Stack,
   Group,
   Grid,
   useMantineTheme,
-  Title,
   ThemeIcon,
   Alert,
+  Tooltip,
 } from "@mantine/core";
 import { IconCheck, IconLetterX } from "@tabler/icons";
-import dayjs from "dayjs";
 import useStyles from "./TwitterAccountInfo.styles";
-import { truncate } from "../../utils/format";
-import type { Response } from "../../pages/api/twitter/[username]";
 import type { ResponseString } from "../../pages/index";
-
-const exampleData = {
-  data: {
-    userId: "1491914803673280514",
-    targetId: "991439317053591552",
-    userFollowsTarget: "1",
-    userTwitterKey: "B62qiYfU916vWRHyfeNHMd36i9KfHVtdskZhNRwqupkp29UXiBTpwkx",
-  },
-  signature: {
-    r: "5904500768010812647750286499160847181799594659452062290323359817465168623559",
-    s: "2360943628851461363281283404464175034926975344607958234175925313850384805333",
-  },
-  publicKey: "B62qp8ksPHoTnse3Uj2fjXttFT1ELQrwNNHv2VvVL6gZi9eHNyDX5Vb",
-  error: false,
-  rateLimit: {
-    limit: 15,
-    remaining: 13,
-    reset: 1670664563,
-  },
-};
 
 interface TwitterAccountInfoProps {
   data: ResponseString | undefined;
@@ -61,13 +37,28 @@ export function TwitterAccountInfo({
   }
 
   return (
-    <Stack>
-      <Text weight={500}>
-        This is what oracle says about your Twitter profile:
+    <Stack
+      style={{
+        backgroundColor: theme.colors.gray[1],
+        padding: theme.spacing.sm,
+        borderRadius: theme.radius.sm,
+        fontSize: theme.fontSizes.sm,
+        wordBreak: "break-all",
+        // color: theme.colors.gray[7],
+      }}
+    >
+      <Text
+        weight={500}
+        style={{
+          borderBottom: `1px solid ${theme.colors.gray[3]}`,
+          paddingBottom: 10,
+        }}
+      >
+        Twitter Account Info
       </Text>
       <Grid
         columns={3}
-        gutter='xs'
+        gutter={8}
         style={{
           color: theme.colors.gray[9],
           fontSize: theme.fontSizes.sm,
@@ -75,21 +66,32 @@ export function TwitterAccountInfo({
         }}
       >
         <Grid.Col span={1}>
-          <Text>Your Mina address: </Text>
+          <Text>Mina address in bio: </Text>
         </Grid.Col>
         <Grid.Col span={2}>
-          <Text weight={500}>
-            {data.data.userTwitterKey ? (
-              truncate(data.data.userTwitterKey, 16, 16)
-            ) : (
-              <Group spacing={6}>
-                <span>No address found</span>
-                <ThemeIcon color="red" radius="xl" size="xs">
-                  <IconLetterX strokeWidth={2.5} />
-                </ThemeIcon>
-              </Group>
-            )}
-          </Text>
+          <Tooltip label={data.data.userTwitterKey}>
+            <Text
+              weight={500}
+              style={{
+                textOverflow: "ellipsis",
+                overflow: "hidden",
+                whiteSpace: "nowrap",
+                cursor: "default",
+              }}
+            >
+              {data.data.userTwitterKey ? (
+                // truncate(data.data.userTwitterKey, 16, 16)
+                data.data.userTwitterKey
+              ) : (
+                <Group spacing={6}>
+                  <span>No address found</span>
+                  <ThemeIcon color="red" radius="xl" size="xs">
+                    <IconLetterX strokeWidth={2.5} />
+                  </ThemeIcon>
+                </Group>
+              )}
+            </Text>
+          </Tooltip>
         </Grid.Col>
         <Grid.Col span={1}>
           <Text>Following Mina: </Text>
@@ -117,15 +119,18 @@ export function TwitterAccountInfo({
       <Stack
         spacing={4}
         style={{
-          backgroundColor: theme.colors.gray[1],
-          padding: theme.spacing.sm,
-          borderRadius: theme.radius.sm,
-          fontSize: theme.fontSizes.sm,
-          wordBreak: "break-all",
-          color: theme.colors.gray[7],
+          borderTop: `1px solid ${theme.colors.gray[3]}`,
+          paddingTop: 10,
+          color: theme.colors.gray[6],
         }}
       >
-        <Text size="xs" weight={500}>
+        <Text size="xs">
+          <Text span weight={500}>
+            Oracle public key:
+          </Text>{" "}
+          {data.publicKey}
+        </Text>
+        {/* <Text size="xs" weight={500}>
           Oracle signature
         </Text>
         <Text size="xs">
@@ -133,7 +138,7 @@ export function TwitterAccountInfo({
         </Text>
         <Text size="xs">
           <b>s:</b> {data.signature.s}
-        </Text>
+        </Text> */}
       </Stack>
     </Stack>
   );
