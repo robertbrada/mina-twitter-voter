@@ -86,7 +86,6 @@ const functions = {
   },
   createVoteTransaction: async (args: VoteParams) => {
     console.log("zkappWorker createVoteTransaction()");
-    console.log("args", args);
 
     // Make the conversion to SnarkyJS types here otherwise weird error might occur (e.g. "PublicKey.toFields() is not a function")
     const transaction = await Mina.transaction(() => {

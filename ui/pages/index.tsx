@@ -69,7 +69,6 @@ export default function Home({
   }
 
   async function getTwitterData(username: string) {
-    console.log("username", username);
     setError(false);
     setLoading(true);
     try {
