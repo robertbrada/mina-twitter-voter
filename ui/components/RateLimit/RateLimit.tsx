@@ -41,7 +41,7 @@ export function RateLimit({
       <Grid.Col span={1}>
         <Text>Remaining: </Text>
       </Grid.Col>
-      <Grid.Col span={3}>{remaining ?? "-"}</Grid.Col>
+      <Grid.Col span={3}>{remaining ?? "-"} (1 request per each 100 followings is made)</Grid.Col>
       <Grid.Col span={1}>
         <Text>Resets: </Text>
       </Grid.Col>

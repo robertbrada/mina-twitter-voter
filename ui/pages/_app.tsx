@@ -52,12 +52,11 @@ export default function App({ Component, pageProps }: AppProps) {
         }
         const publicKeyBase58: string = (await mina.requestAccounts())[0];
         const publicKey = PublicKey.fromBase58(publicKeyBase58);
-        console.log("using key", publicKey.toBase58());
+        console.log("using users key", publicKey.toBase58());
         console.log("checking if account exists...");
         const res = await zkappWorkerClient.fetchAccount({
           publicKey: publicKey!,
         });
-        console.log("publicKeyBase58", publicKeyBase58);
         const accountExists = res.error == null;
         await zkappWorkerClient.loadContract();
         console.log("compiling zkApp");

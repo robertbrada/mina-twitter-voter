@@ -8,6 +8,8 @@ This app is running on Berkeley testnet and is deployed to: https://mina-twitter
 
 This is by no means am app that can't be tricked. This is just a demo whose goal is to use SnarkyJS in an app that includes smart contracts, user interface and an oracle.
 
+This app was developed in a fast pace during [Mina Cohort0](https://minaprotocol.com/zkignite-cohort0-signup) event. There might see some TODOs or messy code across the app.
+
 ## Run user interface and oracle locally
 
 1. Sign-up for [Twitter API](https://developer.twitter.com/en/docs/twitter-api) and get your TWITTER_BEARER_TOKEN

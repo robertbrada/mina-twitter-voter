@@ -33,10 +33,11 @@ async function localDeploy(
   const txn = await Mina.transaction(deployerAccount, () => {
     AccountUpdate.fundNewAccount(deployerAccount);
     zkAppInstance.deploy({ zkappKey: zkAppPrivatekey });
-    zkAppInstance.init(zkAppPrivatekey);
+    // zkAppInstance.init(zkAppPrivatekey);
   });
-  await txn.prove();
-  txn.sign([zkAppPrivatekey]);
+  // TODO add proving to
+  // await txn.prove();
+  // txn.sign([zkAppPrivatekey]);
   await txn.send();
 }
 
