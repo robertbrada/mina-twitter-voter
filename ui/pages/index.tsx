@@ -150,7 +150,7 @@ export default function Home({
                 width: "fit-content",
               }}
             >
-              MINA-B62qiYfU916vWRHyfeNHMd36i9KfHVtdskZhNRwqupkp29UXiBTpwkx-MINA
+              MINA-B62qq7LFHMUSffNS1Ueamo8PrFDGkCFGhxkXhhTPVHr8kCsLmAtRvQk-MINA
             </Text>
           </li>
           <li>

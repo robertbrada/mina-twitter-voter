@@ -1,3 +1,3 @@
-import { Add } from './Add.js';
+import { TwitterVoter } from './TwitterVoter.js';
 
-export { Add };
+export { TwitterVoter };
