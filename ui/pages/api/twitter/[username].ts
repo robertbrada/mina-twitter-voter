@@ -61,7 +61,7 @@ async function getAllFollowings(client: TwitterApiType, userId: string) {
   return { followings, rateLimit };
 }
 
-async function getSignedIsFollowing(
+async function getSignedData(
   username: string,
   targetAccountId: string
 ): Promise<Response> {
@@ -192,7 +192,7 @@ export default async function handler(
   const { username } = req.query;
 
   if (typeof username === "string" && username.length > 0) {
-    const response = await getSignedIsFollowing(username, MINA_TWITTER_ID);
+    const response = await getSignedData(username, MINA_TWITTER_ID);
     res.status(200).json(response);
   } else {
     res.status(400).json("Invalid username");

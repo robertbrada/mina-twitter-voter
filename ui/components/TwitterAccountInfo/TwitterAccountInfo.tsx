@@ -13,7 +13,7 @@ import useStyles from "./TwitterAccountInfo.styles";
 import type { ResponseString } from "../../pages/index";
 
 interface TwitterAccountInfoProps {
-  data: ResponseString | undefined;
+  data: ResponseString;
   error: boolean;
 }
 export function TwitterAccountInfo({
@@ -32,7 +32,7 @@ export function TwitterAccountInfo({
     );
   }
 
-  if (!data) {
+  if (!data || !data.data) {
     return <Text color="dimmed">Your Twitter data will appear here</Text>;
   }
 

@@ -91,7 +91,7 @@ export function VotingForm({
         <Stack spacing={8}>
           <Text span size="sm" color="dimmed" mb={20}>
             {
-              "Some of the required conditions is not met. Check again that you follow Mina on Twitter and that your Mina address is in your Bio."
+              "Some of the required conditions is not met. Check again that you follow Mina on Twitter and that your Mina address is in your bio."
             }
             <Checkbox
               size="xs"
