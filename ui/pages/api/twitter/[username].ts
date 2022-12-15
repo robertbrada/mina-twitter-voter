@@ -18,16 +18,19 @@ import type {
 const MINA_TWITTER_ID = "991439317053591552";
 
 export type Response = {
-  data: {
-    userId: Field;
-    targetId: Field;
-    userFollowsTarget: Field;
-    userTwitterKey: PublicKey | null;
-  };
-  signature: SignatureType;
-  publicKey: PublicKeyType;
+  data:
+    | {
+        userId: Field;
+        targetId: Field;
+        userFollowsTarget: Field;
+        userTwitterKey: PublicKey | null;
+      }
+    | undefined;
+  signature: SignatureType | undefined;
+  publicKey: PublicKeyType | undefined;
+  rateLimit: { limit: number; remaining: number; reset: number } | undefined;
   error: boolean;
-  rateLimit: { limit: number; remaining: number; reset: number };
+  tooManyFollowers: boolean;
 };
 
 function getMinaAddressFromBio(bio: string) {
@@ -35,7 +38,7 @@ function getMinaAddressFromBio(bio: string) {
   const pattern = /(?<=MINA-)[1-9A-HJ-NP-Za-km-z]{55}(?=-MINA)/i;
   const result = bio.match(pattern);
 
-  return result ? result[0] : "none";
+  return result ? result[0] : "";
 }
 
 async function getAllFollowings(client: TwitterApiType, userId: string) {
@@ -83,20 +86,46 @@ async function getSignedIsFollowing(
   // get user twitter ID
   // Note: API request rate limit for user info can be ignored for now (900 per 15 minutes)
   const { data: user } = await readOnlyClient.v2.userByUsername(username, {
-    "user.fields": ["description"],
+    "user.fields": ["description", "public_metrics"],
   });
 
-  // get who is user following
-  const { followings, rateLimit } = await getAllFollowings(
-    readOnlyClient,
-    user.id
-  );
+  console.log("user", user);
 
+  const followingCount = user.public_metrics?.following_count;
+
+  let followings;
+  let rateLimit;
+
+  if (followingCount && followingCount > 1000) {
+    return {
+      data: undefined,
+      signature: undefined,
+      publicKey: undefined,
+      rateLimit: undefined,
+      tooManyFollowers: true,
+      error: true,
+    };
+  }
+  const resp = await getAllFollowings(readOnlyClient, user.id);
+
+  followings = resp.followings;
+  rateLimit = resp.rateLimit;
+
+  if (!followings || !rateLimit) {
+    return {
+      data: undefined,
+      signature: undefined,
+      publicKey: undefined,
+      rateLimit: undefined,
+      tooManyFollowers: false,
+      error: true,
+    };
+  }
 
   // search for target account in users' followings
-  const targetAccount = followings.find((f) => f !== undefined ? f.id === targetAccountId : false);
-
-  console.log("targetAccount", targetAccount);
+  const targetAccount = followings.find((f) =>
+    f !== undefined ? f.id === targetAccountId : false
+  );
 
   // convert to snarky data types
   const userFollowsTarget = Field(targetAccount ? 1 : 0);
@@ -106,10 +135,7 @@ async function getSignedIsFollowing(
     ? getMinaAddressFromBio(user.description)
     : "";
 
-  console.log("userBioMinaAddress", userBioMinaAddress);
-
   if (!userBioMinaAddress) {
-    console.log("NOT userBioMinaAddress");
     return {
       data: {
         userId: userId,
@@ -125,8 +151,9 @@ async function getSignedIsFollowing(
         Field(0),
       ]),
       publicKey: publicKey,
-      error: false,
       rateLimit,
+      error: false,
+      tooManyFollowers: false,
     };
   }
 
@@ -151,8 +178,9 @@ async function getSignedIsFollowing(
     },
     signature: signature,
     publicKey: publicKey,
-    error: false,
     rateLimit,
+    error: false,
+    tooManyFollowers: false,
   };
 }
 

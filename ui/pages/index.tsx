@@ -9,28 +9,33 @@ import {
   Grid,
   Anchor,
   Center,
+  Alert,
 } from "@mantine/core";
 import { RateLimit } from "../components/RateLimit/RateLimit";
 import { TwitterAccountInfo } from "../components/TwitterAccountInfo/TwitterAccountInfo";
 import { VotingForm } from "../components/VotingForm/VotingForm";
 import { PublicKey } from "snarkyjs";
-// import type { Votes } from "./zkappWorkerClient";
 import type { Votes } from "../workers/zkappWorkerClient";
 
 export interface ResponseString {
-  data: {
-    userId: string;
-    targetId: string;
-    userFollowsTarget: string;
-    userTwitterKey: string | null;
-  };
-  signature: {
-    r: string;
-    s: string;
-  };
-  publicKey: string;
+  data:
+    | {
+        userId: string;
+        targetId: string;
+        userFollowsTarget: string;
+        userTwitterKey: string | null;
+      }
+    | undefined;
+  signature:
+    | {
+        r: string;
+        s: string;
+      }
+    | undefined;
+  publicKey: string | undefined;
+  rateLimit: { limit: number; remaining: number; reset: number } | undefined;
   error: boolean;
-  rateLimit: { limit: number; remaining: number; reset: number };
+  tooManyFollowers: boolean;
 }
 
 function formatUsername(username: string) {
@@ -87,7 +92,7 @@ export default function Home({
 
   async function handleOnVote(voteId: number) {
     console.log("index.tsx handleOnVote(), voteId: ", voteId);
-    if (!data || !data.data.userTwitterKey) return;
+    if (!data || !data.data?.userTwitterKey) return;
 
     onVote(
       data.data.userId,
@@ -99,7 +104,14 @@ export default function Home({
     );
   }
 
-  const cannotVote = !data?.data.userFollowsTarget || !data.data.userTwitterKey;
+  const cannotVote =
+    !data ||
+    !data.data ||
+    !data?.data.userFollowsTarget ||
+    !data.data.userTwitterKey ||
+    !data.publicKey ||
+    !data.signature ||
+    data.error;
 
   return (
     <Grid columns={2} gutter={100}>
@@ -164,41 +176,63 @@ export default function Home({
                   variant="gradient"
                   gradient={{ from: "violet", to: "blue" }}
                   loading={loading}
-                  disabled={!username.trim() || loadingSnarky}
+                  disabled={
+                    !username.trim() ||
+                    loadingSnarky ||
+                    data?.rateLimit?.limit === 0
+                  }
                 >
                   Check my profile
                 </Button>
-                <Text size="xs" color="dimmed">
+                <Text size="xs" color="pink">
                   {loadingSnarky && "Wait for SnarkyJS..."}
+                  {data?.rateLimit?.limit === 0 && "Request limit over"}
                 </Text>
               </Group>
             </Stack>
           </li>
         </ol>
         <RateLimit
-          max={data?.rateLimit.limit}
+          max={data?.rateLimit?.limit}
           timeWindowSeconds={15 * 60}
-          remaining={data?.rateLimit.remaining}
-          resetTimestamp={data ? data.rateLimit.reset * 1000 : undefined}
+          remaining={data?.rateLimit?.remaining}
+          resetTimestamp={
+            data && data.rateLimit ? data.rateLimit.reset * 1000 : undefined
+          }
         />
       </Grid.Col>
       <Grid.Col span={1} style={{ marginTop: 34 }}>
         {data ? (
-          <>
-            <TwitterAccountInfo data={data} error={error} />
-            <Text weight={500} mt={40}>
-              {cannotVote ? "You can't vote :(" : "Vote Here!"}
-            </Text>
-            <VotingForm
-              error={cannotVote}
-              loadingSnarky={loadingSnarky}
-              creatingTransaction={creatingTransaction}
-              votes={votes}
-              refreshingState={refreshingState}
-              onVote={(voteId: number) => handleOnVote(voteId)}
-              onRefreshCurrentVotes={onRefreshCurrentVotes}
-            />
-          </>
+          data.error ? (
+            <Alert color="red">
+              <Text color="red" weight={500}>
+                There was some issue while getting the Twitter data.
+              </Text>
+              {data.tooManyFollowers && (
+                <Text color="red" mt={10}>
+                  Sorry, but you are following more than 1000 accounts. This
+                  project uses free Twitter api and the amount of requests is
+                  limited.
+                </Text>
+              )}
+            </Alert>
+          ) : (
+            <>
+              <TwitterAccountInfo data={data} error={error || data.error} />
+              <Text weight={500} mt={40}>
+                {cannotVote ? "You can't vote :(" : "Vote Here!"}
+              </Text>
+              <VotingForm
+                error={cannotVote}
+                loadingSnarky={loadingSnarky}
+                creatingTransaction={creatingTransaction}
+                votes={votes}
+                refreshingState={refreshingState}
+                onVote={(voteId: number) => handleOnVote(voteId)}
+                onRefreshCurrentVotes={onRefreshCurrentVotes}
+              />
+            </>
+          )
         ) : (
           <Center
             style={{

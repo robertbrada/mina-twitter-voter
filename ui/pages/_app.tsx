@@ -17,19 +17,10 @@ import { IconCheck, IconExternalLink } from "@tabler/icons";
 import { Logo } from "../components/Logo/Logo";
 import "../styles/globals.css";
 import type { AppProps } from "next/app";
-// import type { Votes } from "./zkappWorkerClient";
-// import ZkappWorkerClient from "./zkappWorkerClient";
 import ZkappWorkerClient from "../workers/zkappWorkerClient";
 import type { Votes } from "../workers/zkappWorkerClient";
 
 let transactionFee = 0.2;
-
-export async function getServerSideProps() {
-  console.log("getServerSideProps APP");
-  return {
-    props: {}, // will be passed to the page component as props
-  };
-}
 
 export default function App({ Component, pageProps }: AppProps) {
   let [state, setState] = useState({
