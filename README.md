@@ -2,7 +2,7 @@
 
 This app allows users who follow Mina's Twitter account to vote for one of three logos.
 
-This app is deployed to: https://mina-twitter-voter.vercel.app/
+This app is running on Berkeley testnet and is deployed to: https://mina-twitter-voter.vercel.app/
 
 ## DISCLAIMER
 
