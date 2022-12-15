@@ -113,7 +113,7 @@ describe('TwitterVoter', () => {
       const verifiedEventValue = events[1].event.toFields(null)[0];
       const votedEventValue = events[0].event.toFields(null)[0];
       expect(verifiedEventValue).toEqual(userId);
-      expect(votedEventValue).toEqual(userId);
+      expect(votedEventValue).toEqual(userId.mul(2));
 
       // check votes changed accordingly
       expect(zkAppInstance.votesFor0.get()).toEqual(Field(0));

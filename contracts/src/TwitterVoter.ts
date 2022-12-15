@@ -123,6 +123,6 @@ export class TwitterVoter extends SmartContract {
     this.votesFor0.set(updatedVotesFor0);
     this.votesFor1.set(updatedVotesFor1);
     this.votesFor2.set(updatedVotesFor2);
-    this.emitEvent('voted', userId);
+    this.emitEvent('voted', userId.mul(2)); // multiplying by 2 only to improve testing (I don't want to have two events with the same ID assigned)
   }
 }
