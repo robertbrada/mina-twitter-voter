@@ -169,7 +169,7 @@ export function VotingForm({
             currentVotes={votes?.votesFor2 ?? ""}
             disabled={(error || loadingSnarky) && !ignoreError}
             loading={creatingTransaction}
-            voteId={1}
+            voteId={2}
             onVote={onVote}
           />
         </Grid.Col>
