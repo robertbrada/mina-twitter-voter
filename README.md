@@ -8,9 +8,9 @@ Demo video: https://www.youtube.com/watch?v=ctwuZzxzLNE
 
 ## DISCLAIMER
 
-This is by no means am app that can't be tricked. This is just a demo whose goal is to use SnarkyJS in an app that includes smart contracts, user interface and an oracle.
+This is not a finished app that can't be tricked. This is just a demo whose goal is to use SnarkyJS in an app that includes smart contracts, user interface and an oracle.
 
-This app was developed in a fast pace during [Mina Cohort0](https://minaprotocol.com/zkignite-cohort0-signup) event. There might see some TODOs or messy code across the app.
+This app was developed during [Mina Cohort0](https://minaprotocol.com/zkignite-cohort0-signup) event. There might see some missing pieces or messy code across the app. Please that that into account if you take my code as an inspiration.
 
 ## Run user interface and oracle locally
 
